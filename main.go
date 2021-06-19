@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	log.Println("111")
+	log.Println("mysql orm of dbr run...")
 	dbConf := &DBConf{
 		Ip:           "127.0.0.1",
 		Port:         3306,
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// opens a database
-	conn, _ := dbr.Open("mysql", dsn, nil)
+	conn, _ := dbr.Open("mysql", dsn, dbReceiver)
 
 	// 设置连接池相关参数
 	conn.SetMaxOpenConns(dbConf.MaxOpenConns)
@@ -160,4 +160,48 @@ func (conf *DBConf) DSN() (string, error) {
 func handleSession(con *dbr.Connection) *dbr.Session {
 	session := con.NewSession(nil)
 	return session
+}
+
+// ===========对不同的事件进行监听================
+
+type kvs map[string]string
+
+var dbReceiver = &NullEventReceiver{}
+
+// NullEventReceiver is a sentinel EventReceiver.
+// Use it if the caller doesn't supply one.
+type NullEventReceiver struct{}
+
+// Event receives a simple notification when various events occur.
+func (n *NullEventReceiver) Event(eventName string) {
+	// log.Println("event_name: ", eventName)
+}
+
+// EventKv receives a notification when various events occur along with
+// optional key/value data.
+func (n *NullEventReceiver) EventKv(eventName string, kvs map[string]string) {
+	// log.Println("event_name1: ", eventName)
+	// log.Println("kvs: ", kvs)
+}
+
+// EventErr receives a notification of an error if one occurs.
+func (n *NullEventReceiver) EventErr(eventName string, err error) error { return err }
+
+// EventErrKv receives a notification of an error if one occurs along with
+// optional key/value data.
+func (n *NullEventReceiver) EventErrKv(eventName string, err error, kvs map[string]string) error {
+	return err
+}
+
+// Timing receives the time an event took to happen.
+func (n *NullEventReceiver) Timing(eventName string, nanoseconds int64) {
+	log.Println("event_name: ", eventName)
+	log.Println("nanoseconds: ", nanoseconds)
+}
+
+// TimingKv receives the time an event took to happen along with optional key/value data.
+func (n *NullEventReceiver) TimingKv(eventName string, nanoseconds int64, kvs map[string]string) {
+	log.Println("exec event_name: ", eventName)
+	log.Println("nanoseconds: ", nanoseconds)
+	log.Println("kvs: ", kvs)
 }
