@@ -27,14 +27,15 @@
             of ORM, and there is no mental burden;
          6. Developers only need to master the mysql syntax to quickly develop, and the operation is 
             relatively simple and intuitive;
-
+            
+# Core code implementation
 ``` go
 // Connection wraps sql.DB with an EventReceiver
 // to send events, errors, and timings.
 type Connection struct {
-*sql.DB
-Dialect
-EventReceiver
+    *sql.DB
+    Dialect
+    EventReceiver
 }
 
 // Session represents a business unit of execution.
@@ -47,9 +48,55 @@ EventReceiver
 //
 // Timeout specifies max duration for an operation like Select.
 type Session struct {
-*Connection
-EventReceiver
-Timeout time.Duration
+    *Connection
+    EventReceiver
+    Timeout time.Duration
+}
+
+// SessionRunner can do anything that a Session can except start a transaction.
+// Both Session and Tx implements this interface.
+type SessionRunner interface {
+	Select(column ...string) *SelectBuilder
+	SelectBySql(query string, value ...interface{}) *SelectBuilder
+
+	InsertInto(table string) *InsertBuilder
+	InsertBySql(query string, value ...interface{}) *InsertBuilder
+
+	Update(table string) *UpdateBuilder
+	UpdateBySql(query string, value ...interface{}) *UpdateBuilder
+
+	DeleteFrom(table string) *DeleteBuilder
+	DeleteBySql(query string, value ...interface{}) *DeleteBuilder
+}
+
+type runner interface {
+	GetTimeout() time.Duration
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+}
+
+// dbr interface func mode
+package dbr
+
+// Builder builds SQL in Dialect like MySQL, and PostgreSQL.
+// The raw SQL and values are stored in Buffer.
+//
+// The core of gocraft/dbr is interpolation, which can expand ? with arbitrary SQL.
+// If you need a feature that is not currently supported, you can build it
+// on your own (or use Expr).
+//
+// To do that, the value that you wish to be expanded with ? needs to
+// implement Builder.
+type Builder interface {
+	Build(Dialect, Buffer) error
+}
+
+// BuildFunc implements Builder.
+type BuildFunc func(Dialect, Buffer) error
+
+// Build calls itself to build SQL.
+func (b BuildFunc) Build(d Dialect, buf Buffer) error {
+	return b(d, buf)
 }
 ```
 
