@@ -13,14 +13,18 @@
         5、开发人员既能快速上手，又不需要学习一些orm组件的复杂语法，也不必了解ORM底层实现细节，没有心智负担；
         6、开发人员只需要掌握mysql语法就可以快速进行开发，操作起来比较简单、直观；
     The excellent design of dbr is as follows:
-         1. Expanded on the basis of database/sql, adding convenient methods such as select, insert, delete, and update;
-         2. Support session ctx binding, transaction tx ctx binding, global session binding, and single session binding;
+         1. Expanded on the basis of database/sql, adding convenient methods such as select, insert,
+            delete, and update;
+         2. Support session ctx binding, transaction tx ctx binding, global session binding, 
+            and single session binding;
          3. The standard sql.DB Exec method is also supported, because *sql.DB is nested inside dbr,
             so that sql native methods can be executed directly;
          4. dbr supports opentracing monitoring, provides an interface design mode, 
-            and can perform performance monitoring and analysis on each operation of the database;
-         5. Developers can get started quickly, and they don't need to learn some complex syntax of ORM components,
-            nor do they need to understand the underlying implementation details of ORM, and there is no mental burden;
+            and can perform performance monitoring and analysis on each operation
+            of the database;
+         5. Developers can get started quickly, and they don't need to learn some complex syntax 
+            of ORM components,nor do they need to understand the underlying implementation details
+            of ORM, and there is no mental burden;
          6. Developers only need to master the mysql syntax to quickly develop, and the operation is 
             relatively simple and intuitive;
 
