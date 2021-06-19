@@ -157,14 +157,16 @@ func (conf *DBConf) DSN() (string, error) {
 	return mysqlConf.FormatDSN(), nil
 }
 
-func handleSession(con *dbr.Connection) *dbr.Session {
+func handleSession(con *dbr.Connection, timeout ...time.Duration) *dbr.Session {
 	session := con.NewSession(nil)
+	if len(timeout) > 0 && timeout[0] > 0 {
+		session.Timeout = timeout[0] // 单个session会话超时处理
+	}
+
 	return session
 }
 
 // ===========对不同的事件进行监听================
-
-type kvs map[string]string
 
 var dbReceiver = &NullEventReceiver{}
 
