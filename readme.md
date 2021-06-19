@@ -4,7 +4,8 @@
 
 # dbr design ideas
     
-    https://github.com/gocraft/dbr
+https://github.com/gocraft/dbr
+
     dbr优秀的设计体现如下：
         1、在database/sql基础上进行了拓展,增加了select,insert,delete,update等便捷的方法；
         2、支持session ctx绑定，同时也支持事务tx ctx绑定，支持全局session绑定，也支持单个session绑定；
