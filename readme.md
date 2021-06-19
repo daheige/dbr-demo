@@ -99,4 +99,62 @@ func (b BuildFunc) Build(d Dialect, buf Buffer) error {
 	return b(d, buf)
 }
 ```
+# event core code
 
+``` go
+// EventReceiver gets events from dbr methods for logging purposes.
+type EventReceiver interface {
+	Event(eventName string)
+	EventKv(eventName string, kvs map[string]string)
+	EventErr(eventName string, err error) error
+	EventErrKv(eventName string, err error, kvs map[string]string) error
+	Timing(eventName string, nanoseconds int64)
+	TimingKv(eventName string, nanoseconds int64, kvs map[string]string)
+}
+
+// TracingEventReceiver is an optional interface an EventReceiver type can implement
+// to allow tracing instrumentation
+type TracingEventReceiver interface {
+	SpanStart(ctx context.Context, eventName, query string) context.Context
+	SpanError(ctx context.Context, err error)
+	SpanFinish(ctx context.Context)
+}
+
+// opentracing/event_receiver.go 
+package opentracing
+
+import (
+	"context"
+
+	ot "github.com/opentracing/opentracing-go"
+	otext "github.com/opentracing/opentracing-go/ext"
+	otlog "github.com/opentracing/opentracing-go/log"
+)
+
+// EventReceiver provides an embeddable implementation of dbr.TracingEventReceiver
+// powered by opentracing-go.
+type EventReceiver struct{}
+
+// SpanStart starts a new query span from ctx, then returns a new context with the new span.
+func (EventReceiver) SpanStart(ctx context.Context, eventName, query string) context.Context {
+	span, ctx := ot.StartSpanFromContext(ctx, eventName)
+	otext.DBStatement.Set(span, query)
+	otext.DBType.Set(span, "sql")
+	return ctx
+}
+
+// SpanFinish finishes the span associated with ctx.
+func (EventReceiver) SpanFinish(ctx context.Context) {
+	if span := ot.SpanFromContext(ctx); span != nil {
+		span.Finish()
+	}
+}
+
+// SpanError adds an error to the span associated with ctx.
+func (EventReceiver) SpanError(ctx context.Context, err error) {
+	if span := ot.SpanFromContext(ctx); span != nil {
+		otext.Error.Set(span, true)
+		span.LogFields(otlog.String("event", "error"), otlog.Error(err))
+	}
+}
+```
