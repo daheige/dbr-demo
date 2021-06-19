@@ -43,7 +43,7 @@ func main() {
 	total, err := sess.Select("*").From(User{}.TableName()).Where("id > ?", 1).Load(&users)
 	log.Println("total: ", total, "error: ", err)
 	log.Println("users: ", users)
-
+	// ... 其他方法可以参考 https://github.com/gocraft/dbr
 }
 
 // User
